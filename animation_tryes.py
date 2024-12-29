@@ -6,7 +6,7 @@ FPS = 100
 
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join('data', 'animation', '_PNG', '3_KNIGHT', name)
+    fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -18,7 +18,6 @@ def load_image(name, colorkey=None):
         image.set_colorkey(colorkey)
     else:
         image = image.convert_alpha()
-    return image
     return image
 
 
@@ -53,62 +52,75 @@ class Board:
 class Main_charactare(pygame.sprite.Sprite):
     def __init__(self, *group):
         super().__init__(*group)
-        self.anim_now = '0'
+        self.anim_now = '1'
         self.attack_now = '0'
         self.hurt_now = '0'
         self.attack_animation_flag = False
         self.hurt_animation_flag = False
-        self.image = pygame.transform.scale(load_image(f'Knight_03__RUN_00{self.anim_now}.png', colorkey=-1),
-                                            (360, 200))
+        self.image = pygame.transform.scale(load_image(f'samurai/randered/baze.png'),
+                                            (77, 88))
         self.rect = self.image.get_rect()
-        self.rect.x = 50
+        self.rect.x = 100
         self.dir = True
-        self.rect.y = 50
-        self.main_size = (360, 200)
+        self.rect.y = 100
+        self.main_size = (100, 113)
 
     def update(self, *key):
         direct = key[0]
         state = key[1]
         if direct == '1' and not self.attack_animation_flag and not self.hurt_animation_flag:
-            self.rect.y -= 10
+            self.rect.y -= 7
         if direct == '2' and not self.attack_animation_flag and not self.hurt_animation_flag:
             if self.dir:
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.dir = False
-            self.rect.x -= 10
+            self.rect.x -= 7
         if direct == '3' and not self.attack_animation_flag and not self.hurt_animation_flag:
-            self.rect.y += 10
+            self.rect.y += 7
         if direct == '4' and not self.attack_animation_flag and not self.hurt_animation_flag:
             if not self.dir:
                 self.dir = True
-                self.image = pygame.transform.scale(load_image(f'Knight_03__RUN_00{self.anim_now}.png', colorkey=-1),
+                self.image = pygame.transform.scale(load_image(f'samurai/randered/Run{self.anim_now}.png'),
                                                     self.main_size)
-            self.rect.x += 10
+            self.rect.x += 7
         if direct == '5' and state == 'go' and not self.attack_animation_flag and not self.hurt_animation_flag:
-            self.anim_now = str((int(self.anim_now) + 1) % 11)
+            self.anim_now = str((int(self.anim_now)) % 8 + 1)
+            print(self.anim_now)
             self.image = pygame.transform.flip(
-                pygame.transform.scale(load_image(f'Knight_03__RUN_00{self.anim_now}.png', colorkey=-1),
+                pygame.transform.scale(load_image(f'samurai/randered/Run{self.anim_now}.png'),
                                        self.main_size), not self.dir, False)
         if state == 'stay' and not self.attack_animation_flag and not self.hurt_animation_flag:
             self.image = pygame.transform.flip(
-                pygame.transform.scale(load_image(f'Knight_03__RUN_000.png', colorkey=-1),
+                pygame.transform.scale(load_image(f'samurai/randered/baze.png'),
                                        self.main_size), not self.dir, False)
         if direct == '6' and not self.hurt_animation_flag:
             self.attack_animation_flag = True
-            self.attack_now = str((int(self.attack_now) + 1) % 10)
-            self.image = pygame.transform.flip(
-                pygame.transform.scale(load_image(f'Knight_03__ATTACK_00{self.attack_now}.png', colorkey=-1),
-                                       self.main_size), not self.dir, False)
-            if self.attack_now == '0':
+            self.attack_now = str((int(self.attack_now) + 1))
+            print(self.attack_now)
+            if self.attack_now <= '5':
+                self.image = pygame.transform.flip(
+                    pygame.transform.scale(load_image(f'samurai/randered/Attack{self.attack_now}.png'),
+                                           self.main_size), not self.dir, False)
+            elif self.attack_now == '9':
+                self.image = pygame.transform.flip(
+                    pygame.transform.scale(load_image(f'samurai/randered/baze.png'),
+                                           self.main_size), not self.dir, False)
+                self.attack_now = '0'
                 self.attack_animation_flag = False
         if direct == '7' and not self.attack_animation_flag:
             self.hurt_animation_flag = True
-            self.hurt_now = str((int(self.hurt_now) + 1) % 10)
+            self.hurt_now = str((int(self.hurt_now) + 1))
+            if self.hurt_now == '3':
+                self.hurt_now = '2'
             self.image = pygame.transform.flip(
-                pygame.transform.scale(load_image(f'Knight_03__HURT_00{self.hurt_now}.png', colorkey=-1),
+                pygame.transform.scale(load_image(f'samurai/randered/Protection{self.hurt_now}.png'),
                                        self.main_size), not self.dir, False)
-            if self.hurt_now == '0':
+            if state == 'stop':
                 self.hurt_animation_flag = False
+                self.hurt_now = '0'
+                self.image = pygame.transform.flip(
+                    pygame.transform.scale(load_image(f'samurai/randered/baze.png'),
+                                           self.main_size), not self.dir, False)
 
     def get_pos(self):
         return self.rect.x + 120, self.rect.y + 10
@@ -135,7 +147,7 @@ def key_events(all_sprites, state):
         return 'stay'
 
 
-def main_character_animation(screen, ticks_run, all_sprites, attack_flag, attack_ticks, hurt_flag, hurt_ticks, main_character, main_hp):
+def main_character_animation(screen, ticks_run, all_sprites, attack_flag, attack_ticks, protect_flag, protect_ticks, main_character, main_hp):
     state = 'stay'
     state = key_events(all_sprites, state)
     ticks_run += 1
@@ -144,24 +156,20 @@ def main_character_animation(screen, ticks_run, all_sprites, attack_flag, attack
         ticks_run = 0
     if attack_flag:
         attack_ticks += 1
-        if attack_ticks <= 30:
-            if attack_ticks % 3 == 0:
+        if attack_ticks <= 36:
+            if attack_ticks % 4 == 0:
                 all_sprites.update('6', '')
         else:
             attack_ticks = 0
             attack_flag = False
-    if hurt_flag:
-        hurt_ticks += 1
-        if hurt_ticks <= 20:
-            if hurt_ticks % 2 == 0:
-                all_sprites.update('7', '')
-        else:
-            hurt_ticks = 0
-            hurt_flag = False
-    x, y = main_character.get_pos()
-    pygame.draw.rect(screen, 'white', (x - 2, y - 2, 154, 14))
-    pygame.draw.rect(screen, 'green', (x, y, main_hp, 10))
-    return ticks_run, attack_flag, attack_ticks, hurt_flag, hurt_ticks
+    if protect_flag:
+        protect_ticks += 1
+        if protect_ticks % 5 == 0:
+            all_sprites.update('7', '')
+    elif not protect_flag and protect_ticks > 0:
+        all_sprites.update('7', 'stop')
+        protect_ticks = 0
+    return ticks_run, attack_flag, attack_ticks, protect_flag, protect_ticks
 
 
 def main():
@@ -176,8 +184,8 @@ def main():
     ticks_run = 0
     attack_flag = False
     attack_ticks = 0
-    hurt_flag = False
-    hurt_ticks = 0
+    protect_flag = False
+    protect_ticks = 0
     board = Board(29, 16, 60)
     running = True
     while running:
@@ -187,13 +195,14 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 attack_flag = True
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-                hurt_flag = True
-                main_hp -= 30
+                protect_flag = True
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+                protect_flag = False
         screen.fill('black')
         # board.render(screen)
-        ticks_run, attack_flag, attack_ticks, hurt_flag, hurt_ticks = main_character_animation(screen, ticks_run, all_sprites,
+        ticks_run, attack_flag, attack_ticks, protect_flag, protect_ticks = main_character_animation(screen, ticks_run, all_sprites,
                                                                                                attack_flag,
-                                                                                               attack_ticks, hurt_flag, hurt_ticks, main_charactare, main_hp)
+                                                                                               attack_ticks, protect_flag, protect_ticks, main_charactare, main_hp)
         all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
