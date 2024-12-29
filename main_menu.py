@@ -19,7 +19,6 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
-    return image
 
 def draw_name(screen):
     font = pygame.font.Font('C:/Users/MSI/AppData/Local/Microsoft/Windows/Fonts/go3v2.ttf', 100)
